@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}CareerMentor AI — Your Intelligent Career Companion{% endblock %}
+
+{% block content %}
+<!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+<section class="cm-hero">
+  <div class="container">
+    <div class="row align-items-center min-vh-85">
+      <div class="col-lg-6 mb-5 mb-lg-0 animate-fade-up">
+        <div class="cm-badge mb-4">
+          <i class="bi bi-stars me-1"></i>IBM Granite · Watsonx.ai Powered
+        </div>
+        <h1 class="display-4 fw-bold lh-sm mb-4">
+          Your AI-Powered<br>
+          <span class="text-gradient">Career Counselor</span><br>
+          Available 24/7
+        </h1>
+        <p class="lead text-muted mb-5">
+          Stop guessing about your future. Get personalized career guidance,
+          skill gap analysis, resume reviews, and tailored learning roadmaps —
+          all powered by IBM Granite intelligence.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{{ url_for('profile') }}" class="btn btn-accent btn-lg px-5 py-3">
+            <i class="bi bi-rocket-takeoff me-2"></i>Start Your Journey
+          </a>
+          <a href="{{ url_for('chat') }}" class="btn btn-outline-secondary btn-lg px-4 py-3">
+            <i class="bi bi-chat-dots me-2"></i>Talk to AI Advisor
+          </a>
+        </div>
+        <div class="d-flex gap-4 mt-5 text-muted small">
+          <span><i class="bi bi-shield-check me-1 text-success"></i>Privacy First</span>
+          <span><i class="bi bi-lightning me-1 text-warning"></i>Instant Answers</span>
+          <span><i class="bi bi-globe me-1 text-info"></i>100+ Career Paths</span>
+        </div>
+      </div>
+      <div class="col-lg-6 animate-fade-left">
+        <div class="cm-hero-card">
+          <div class="cm-chat-preview">
+            <div class="cm-chat-msg bot">
+              <div class="cm-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+              <div class="cm-bubble">
+                Hi! I'm CareerMentor AI. Based on your profile in Data Science, I've identified
+                <strong>3 perfect career matches</strong> for you. Ready to explore?
+              </div>
+            </div>
+            <div class="cm-chat-msg user">
+              <div class="cm-bubble user-bubble">Yes! Show me my top career matches.</div>
+              <div class="cm-avatar user-avatar"><i class="bi bi-person"></i></div>
+            </div>
+            <div class="cm-chat-msg bot">
+              <div class="cm-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+              <div class="cm-bubble">
+                <span class="cm-typing-dot"></span>
+                <span class="cm-typing-dot"></span>
+                <span class="cm-typing-dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ───────────────────────────────────────────────────────────── -->
+<section class="py-6 cm-section-alt">
+  <div class="container">
+    <div class="text-center mb-5 animate-fade-up">
+      <h2 class="display-6 fw-bold">Everything You Need to <span class="text-gradient">Launch Your Career</span></h2>
+      <p class="text-muted lead mt-2">8 powerful AI tools in one intelligent platform</p>
+    </div>
+    <div class="row g-4">
+      {% set features = [
+        ("chat-dots-fill",   "text-accent",   "AI Career Chat",        "Have real conversations with your AI counselor. Get instant, personalized career advice 24/7."),
+        ("person-circle",    "text-purple",   "Profile Builder",       "Build a comprehensive academic and professional profile to unlock hyper-personalized guidance."),
+        ("bar-chart-fill",   "text-success",  "Skill Assessment",      "Identify your skill gaps, strengths, and the fastest path to your target role."),
+        ("compass-fill",     "text-warning",  "Career Recommendations","Receive AI-curated top career matches with fit scores based on your unique profile."),
+        ("map-fill",         "text-info",     "Learning Roadmap",      "Get a month-by-month learning plan with courses, certifications, and milestone tracking."),
+        ("file-earmark-text","text-danger",   "Resume Analyzer",       "Upload your resume for instant ATS score, keyword suggestions, and rewrite tips."),
+        ("mic-fill",         "text-orange",   "Interview Prep",        "Practice with role-specific questions, STAR method coaching, and negotiation scripts."),
+        ("speedometer2",     "text-teal",     "Progress Dashboard",    "Track your career journey, milestones, and growth with a beautiful visual dashboard.")
+      ] %}
+      {% for icon, color, title, desc in features %}
+      <div class="col-sm-6 col-lg-3 animate-fade-up">
+        <div class="cm-feature-card h-100">
+          <div class="cm-feature-icon {{ color }}">
+            <i class="bi bi-{{ icon }}"></i>
+          </div>
+          <h5 class="fw-semibold mt-3 mb-2">{{ title }}</h5>
+          <p class="text-muted small mb-0">{{ desc }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ───────────────────────────────────────────────────────── -->
+<section class="py-6">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="display-6 fw-bold">How It <span class="text-gradient">Works</span></h2>
+      <p class="text-muted">From profile to career clarity in 3 simple steps</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      {% set steps = [
+        ("1", "person-vcard-fill", "text-accent", "Build Your Profile",
+         "Enter your education, skills, interests, and career goals. The more you share, the smarter your guidance becomes."),
+        ("2", "robot",             "text-purple",  "Chat with AI Advisor",
+         "Your personalized AI counselor analyzes your profile and provides expert, data-driven career recommendations."),
+        ("3", "trophy-fill",       "text-warning", "Launch Your Career",
+         "Follow your custom roadmap, complete skill gaps, ace interviews, and land the career you deserve.")
+      ] %}
+      {% for num, icon, color, title, desc in steps %}
+      <div class="col-md-4 text-center animate-fade-up">
+        <div class="cm-step-card">
+          <div class="cm-step-num {{ color }}">{{ num }}</div>
+          <div class="cm-step-icon {{ color }} my-3">
+            <i class="bi bi-{{ icon }}"></i>
+          </div>
+          <h5 class="fw-semibold">{{ title }}</h5>
+          <p class="text-muted small">{{ desc }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats ──────────────────────────────────────────────────────────────── -->
+<section class="py-5 cm-stats-section">
+  <div class="container">
+    <div class="row g-4 text-center">
+      {% set stats = [("100+","Career Paths Covered"),("8","AI-Powered Tools"),("24/7","AI Availability"),("IBM Granite","Model Engine")] %}
+      {% for val, label in stats %}
+      <div class="col-6 col-md-3 animate-fade-up">
+        <div class="cm-stat">
+          <div class="cm-stat-val text-gradient">{{ val }}</div>
+          <div class="text-muted small">{{ label }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────────────────── -->
+<section class="py-6">
+  <div class="container">
+    <div class="cm-cta-card text-center animate-fade-up">
+      <h2 class="display-6 fw-bold mb-3">Ready to Discover Your Ideal Career?</h2>
+      <p class="lead text-muted mb-4">Join thousands of students who found their path with CareerMentor AI</p>
+      <a href="{{ url_for('profile') }}" class="btn btn-accent btn-lg px-5 py-3">
+        <i class="bi bi-rocket-takeoff me-2"></i>Build My Profile — It's Free
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

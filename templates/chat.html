@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% block title %}AI Advisor — CareerMentor AI{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+  <aside class="chat-sidebar" id="chatSidebar">
+    <div class="p-3 border-bottom border-secondary-subtle">
+      <h6 class="fw-semibold mb-0"><i class="bi bi-grid me-2 text-accent"></i>AI Tools</h6>
+    </div>
+
+    <!-- Profile Summary -->
+    {% if profile %}
+    <div class="p-3 border-bottom border-secondary-subtle">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <div class="cm-mini-avatar"><i class="bi bi-person-fill"></i></div>
+        <div>
+          <div class="fw-medium small">{{ profile.get('name','Student') }}</div>
+          <div class="text-muted" style="font-size:11px">{{ profile.get('major','No major set') }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Prompts -->
+    <div class="p-3">
+      <p class="text-muted small fw-medium mb-2 text-uppercase" style="font-size:10px; letter-spacing:.08em">Quick Actions</p>
+      <div class="d-flex flex-column gap-1">
+        {% set quick_prompts = [
+          ("compass",          "text-accent",  "Career Recommendations",  "What are my top 3 career matches based on my profile?"),
+          ("bar-chart",        "text-success", "Skill Gap Analysis",      "Analyze my skills and tell me what I need to learn for my target role."),
+          ("map",              "text-info",    "Learning Roadmap",        "Create a 12-month learning roadmap for me."),
+          ("file-earmark-text","text-warning", "Resume Tips",             "Give me 5 resume improvement tips for someone in my field."),
+          ("mic",              "text-purple",  "Interview Prep",          "Help me prepare for behavioral interviews in my target role."),
+          ("lightbulb",        "text-orange",  "Career Trends",           "What are the hottest emerging careers I should know about?"),
+          ("briefcase",        "text-teal",    "Internship Strategy",     "How do I find and land a great internship in my field?")
+        ] %}
+        {% for icon, color, label, prompt in quick_prompts %}
+        <button class="btn btn-sm text-start cm-quick-btn" onclick="sendQuickPrompt('{{ prompt }}')">
+          <i class="bi bi-{{ icon }} me-2 {{ color }}"></i>
+          <span class="small">{{ label }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Tools -->
+    <div class="p-3 border-top border-secondary-subtle">
+      <p class="text-muted small fw-medium mb-2 text-uppercase" style="font-size:10px; letter-spacing:.08em">AI Tools</p>
+      <div class="d-grid gap-2">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#resumeModal">
+          <i class="bi bi-file-earmark-arrow-up me-1"></i>Analyze Resume
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#roadmapModal">
+          <i class="bi bi-map me-1"></i>Generate Roadmap
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#interviewModal">
+          <i class="bi bi-mic me-1"></i>Interview Prep
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#skillModal">
+          <i class="bi bi-bar-chart me-1"></i>Skill Assessment
+        </button>
+      </div>
+    </div>
+
+    <!-- Clear Chat -->
+    <div class="p-3 mt-auto border-top border-secondary-subtle">
+      <button class="btn btn-outline-danger btn-sm w-100" id="clearChatBtn">
+        <i class="bi bi-trash me-1"></i>Clear Conversation
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Chat Main ──────────────────────────────────────────────────────── -->
+  <div class="chat-main">
+    <!-- Chat Header -->
+    <div class="chat-header">
+      <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebarToggle">
+        <i class="bi bi-layout-sidebar-inset"></i>
+      </button>
+      <div class="cm-mini-avatar bot-mini me-2"><i class="bi bi-robot"></i></div>
+      <div>
+        <div class="fw-semibold">CareerMentor AI</div>
+        <div class="small text-success"><i class="bi bi-circle-fill me-1" style="font-size:8px"></i>Online · IBM Granite</div>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <span class="badge bg-secondary cm-model-badge" id="modelBadge">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages" id="chatMessages">
+      <!-- Welcome message -->
+      <div class="chat-msg bot animate-fade-up" id="welcomeMsg">
+        <div class="cm-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+        <div class="msg-content">
+          <div class="msg-bubble">
+            <p class="mb-2"><strong>👋 Hello{% if profile %}, {{ profile.get('name','') }}{% endif %}!</strong> I'm CareerMentor AI, powered by IBM Granite.</p>
+            {% if profile and profile.get('name') %}
+            <p class="mb-2">I've loaded your profile and I'm ready to provide <strong>personalized career guidance</strong> just for you.</p>
+            <p class="mb-0">What would you like to explore today? Try asking about career paths, skill gaps, or let me analyze your resume!</p>
+            {% else %}
+            <p class="mb-2">To unlock <strong>personalized guidance</strong>, consider <a href="{{ url_for('profile') }}" class="text-accent">building your profile</a> first.</p>
+            <p class="mb-0">Or simply ask me anything about careers, skills, learning paths, or interview preparation — I'm here to help!</p>
+            {% endif %}
+          </div>
+          <div class="msg-meta">CareerMentor AI · Just now</div>
+        </div>
+      </div>
+
+      <!-- Previous history -->
+      {% for msg in history %}
+      <div class="chat-msg {{ 'user' if msg.role == 'user' else 'bot' }}">
+        {% if msg.role == 'assistant' %}
+        <div class="cm-avatar bot-avatar"><i class="bi bi-robot"></i></div>
+        {% endif %}
+        <div class="msg-content">
+          <div class="msg-bubble {{ 'user-bubble' if msg.role == 'user' else '' }}">
+            {{ msg.content | safe }}
+          </div>
+        </div>
+        {% if msg.role == 'user' %}
+        <div class="cm-avatar user-avatar"><i class="bi bi-person"></i></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="chat-typing d-none" id="typingIndicator">
+      <div class="cm-avatar bot-avatar sm"><i class="bi bi-robot"></i></div>
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <span class="text-muted small ms-2">CareerMentor AI is thinking…</span>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <div class="chat-input-wrapper">
+        <textarea id="chatInput" class="chat-input" rows="1"
+                  placeholder="Ask about careers, skills, resume tips, interview prep…"
+                  maxlength="2000"></textarea>
+        <div class="chat-input-actions">
+          <span class="text-muted small" id="charCount">0/2000</span>
+          <button class="btn btn-accent btn-send" id="sendBtn" disabled>
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chat-input-footer">
+        <span class="text-muted small">
+          <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Resume Modal ──────────────────────────────────────────────────────── -->
+<div class="modal fade" id="resumeModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content cm-modal">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2 text-warning"></i>Resume Analyzer</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="nav nav-tabs cm-tabs mb-3" id="resumeTabs">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#uploadTab">
+              <i class="bi bi-upload me-1"></i>Upload File
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#pasteTab">
+              <i class="bi bi-clipboard me-1"></i>Paste Text
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="uploadTab">
+            <div class="cm-drop-zone" id="dropZone">
+              <i class="bi bi-cloud-arrow-up display-4 text-muted"></i>
+              <p class="mt-2 text-muted">Drop your resume here or <label for="resumeFile" class="text-accent" style="cursor:pointer">browse</label></p>
+              <small class="text-muted">Supports PDF, DOCX, TXT</small>
+              <input type="file" id="resumeFile" class="d-none" accept=".pdf,.docx,.txt" />
+            </div>
+            <div id="fileSelected" class="mt-2 d-none">
+              <div class="alert alert-success alert-sm mb-0">
+                <i class="bi bi-file-check me-1"></i>
+                <span id="fileName"></span>
+              </div>
+            </div>
+          </div>
+          <div class="tab-pane fade" id="pasteTab">
+            <textarea id="resumeText" class="form-control cm-input" rows="10"
+                      placeholder="Paste your resume content here…"></textarea>
+          </div>
+        </div>
+        <div id="resumeResult" class="mt-3 d-none">
+          <div class="cm-result-box" id="resumeResultContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-accent" id="analyzeResumeBtn">
+          <i class="bi bi-stars me-1"></i>Analyze with AI
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Roadmap Modal ─────────────────────────────────────────────────────── -->
+<div class="modal fade" id="roadmapModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content cm-modal">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-map me-2 text-info"></i>Learning Roadmap Generator</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-medium">Target Role</label>
+            <input type="text" id="roadmapRole" class="form-control cm-input"
+                   placeholder="e.g., Data Scientist, Product Manager, UX Designer" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-medium">Timeline</label>
+            <select id="roadmapTimeline" class="form-select cm-input">
+              <option value="3 months">3 months</option>
+              <option value="6 months">6 months</option>
+              <option value="12 months" selected>12 months</option>
+              <option value="18 months">18 months</option>
+              <option value="2 years">2 years</option>
+            </select>
+          </div>
+        </div>
+        <div id="roadmapResult" class="mt-3 d-none">
+          <div class="cm-result-box" id="roadmapResultContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-accent" id="generateRoadmapBtn">
+          <i class="bi bi-map me-1"></i>Generate Roadmap
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Interview Modal ──────────────────────────────────────────────────── -->
+<div class="modal fade" id="interviewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content cm-modal">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-mic me-2 text-purple"></i>Interview Preparation</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-7">
+            <label class="form-label fw-medium">Target Role</label>
+            <input type="text" id="interviewRole" class="form-control cm-input"
+                   placeholder="e.g., Software Engineer, Data Analyst" />
+          </div>
+          <div class="col-md-5">
+            <label class="form-label fw-medium">Interview Type</label>
+            <select id="interviewType" class="form-select cm-input">
+              <option value="behavioral">Behavioral (STAR)</option>
+              <option value="technical">Technical</option>
+              <option value="case study">Case Study</option>
+              <option value="mixed behavioral and technical">Mixed</option>
+            </select>
+          </div>
+        </div>
+        <div id="interviewResult" class="mt-3 d-none">
+          <div class="cm-result-box" id="interviewResultContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-accent" id="generateInterviewBtn">
+          <i class="bi bi-mic me-1"></i>Generate Prep Guide
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Skill Assessment Modal ───────────────────────────────────────────── -->
+<div class="modal fade" id="skillModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content cm-modal">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-bar-chart me-2 text-success"></i>Skill Gap Assessment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-medium">Your Current Skills</label>
+            <input type="text" id="currentSkills" class="form-control cm-input"
+                   placeholder="e.g., Python, Excel, communication, SQL"
+                   value="{{ profile.get('skills','') }}" />
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-medium">Target Role</label>
+            <input type="text" id="targetRole" class="form-control cm-input"
+                   placeholder="e.g., Machine Learning Engineer, Product Manager" />
+          </div>
+        </div>
+        <div id="skillResult" class="mt-3 d-none">
+          <div class="cm-result-box" id="skillResultContent"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-accent" id="assessSkillBtn">
+          <i class="bi bi-bar-chart me-1"></i>Assess My Skills
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

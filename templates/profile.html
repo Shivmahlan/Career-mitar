@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}My Profile — CareerMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Header -->
+  <div class="row mb-4 animate-fade-up">
+    <div class="col-12">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="cm-page-icon text-purple"><i class="bi bi-person-circle"></i></div>
+        <div>
+          <h1 class="h2 fw-bold mb-0">Student Profile</h1>
+          <p class="text-muted mb-0">The more detail you provide, the smarter your career guidance becomes</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Profile Form -->
+    <div class="col-lg-8 animate-fade-up">
+      <form method="POST" action="{{ url_for('profile') }}" id="profileForm">
+        <!-- Personal Information -->
+        <div class="cm-card mb-4">
+          <div class="cm-card-header">
+            <i class="bi bi-person-badge me-2 text-accent"></i>Personal Information
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Full Name <span class="text-accent">*</span></label>
+                <input type="text" name="name" class="form-control cm-input"
+                       placeholder="e.g., Alex Johnson"
+                       value="{{ profile.get('name','') }}" required />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-medium">Age</label>
+                <input type="number" name="age" class="form-control cm-input"
+                       placeholder="21" min="14" max="60"
+                       value="{{ profile.get('age','') }}" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-medium">Location</label>
+                <input type="text" name="location" class="form-control cm-input"
+                       placeholder="City, Country"
+                       value="{{ profile.get('location','') }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Academic Background -->
+        <div class="cm-card mb-4">
+          <div class="cm-card-header">
+            <i class="bi bi-mortarboard me-2 text-warning"></i>Academic Background
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Education Level <span class="text-accent">*</span></label>
+                <select name="education" class="form-select cm-input" required>
+                  <option value="" disabled {% if not profile.get('education') %}selected{% endif %}>Select level…</option>
+                  {% for opt in ["High School","Diploma / Associate","Bachelor's Degree","Master's Degree","PhD / Doctorate","Bootcamp / Self-taught","Vocational / Trade"] %}
+                  <option value="{{ opt }}" {% if profile.get('education') == opt %}selected{% endif %}>{{ opt }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Field of Study / Major</label>
+                <input type="text" name="major" class="form-control cm-input"
+                       placeholder="e.g., Computer Science, Business, Biology"
+                       value="{{ profile.get('major','') }}" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-medium">GPA / Grade</label>
+                <input type="text" name="gpa" class="form-control cm-input"
+                       placeholder="e.g., 3.7/4.0 or 8.5/10"
+                       value="{{ profile.get('gpa','') }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills & Interests -->
+        <div class="cm-card mb-4">
+          <div class="cm-card-header">
+            <i class="bi bi-lightning-charge me-2 text-success"></i>Skills &amp; Interests
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-medium">
+                  Technical &amp; Soft Skills
+                  <span class="text-muted small">(comma separated)</span>
+                </label>
+                <textarea name="skills" class="form-control cm-input" rows="3"
+                          placeholder="e.g., Python, SQL, teamwork, public speaking, Excel, project management">{{ profile.get('skills','') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium">Interests &amp; Passions</label>
+                <textarea name="interests" class="form-control cm-input" rows="3"
+                          placeholder="e.g., AI, space exploration, social impact, gaming, creative writing, finance">{{ profile.get('interests','') }}</textarea>
+              </div>
+            </div>
+            <!-- Skill Tags -->
+            <div class="mt-3">
+              <p class="text-muted small mb-2">Quick add skills:</p>
+              <div class="d-flex flex-wrap gap-2" id="skillTags">
+                {% for skill in ["Python","JavaScript","Data Analysis","Machine Learning","Cloud","SQL","Leadership","Communication","Excel","Project Mgmt","Design","Marketing"] %}
+                <button type="button" class="btn btn-outline-secondary btn-sm cm-skill-tag" data-skill="{{ skill }}">
+                  + {{ skill }}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Goals & Experience -->
+        <div class="cm-card mb-4">
+          <div class="cm-card-header">
+            <i class="bi bi-trophy me-2 text-warning"></i>Goals &amp; Experience
+          </div>
+          <div class="card-body p-4">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-medium">Career Goals</label>
+                <textarea name="goals" class="form-control cm-input" rows="3"
+                          placeholder="e.g., Become an AI engineer, start my own business, work in healthcare research...">{{ profile.get('goals','') }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-medium">Work / Internship Experience</label>
+                <textarea name="experience" class="form-control cm-input" rows="3"
+                          placeholder="e.g., 6-month internship at a tech startup, part-time retail, freelance web development...">{{ profile.get('experience','') }}</textarea>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Certifications Held</label>
+                <input type="text" name="certifications" class="form-control cm-input"
+                       placeholder="e.g., AWS Cloud, Google Analytics, PMP"
+                       value="{{ profile.get('certifications','') }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Constraints / Preferences</label>
+                <input type="text" name="constraints" class="form-control cm-input"
+                       placeholder="e.g., remote work only, no travel, evening classes"
+                       value="{{ profile.get('constraints','') }}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="d-flex gap-3">
+          <button type="submit" class="btn btn-accent btn-lg px-5">
+            <i class="bi bi-save me-2"></i>Save Profile &amp; Personalize AI
+          </button>
+          <a href="{{ url_for('chat') }}" class="btn btn-outline-secondary btn-lg px-4">
+            Skip — Go to Chat <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4 animate-fade-left">
+      <!-- Profile Completeness -->
+      <div class="cm-card mb-4">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3"><i class="bi bi-bar-chart me-2 text-accent"></i>Profile Completeness</h6>
+          <div class="progress cm-progress mb-2">
+            <div class="progress-bar bg-accent" id="completenessBar" style="width: 0%"></div>
+          </div>
+          <small class="text-muted" id="completenessText">Fill in your profile to get started</small>
+        </div>
+      </div>
+
+      <!-- Why profile matters -->
+      <div class="cm-card mb-4">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3"><i class="bi bi-stars me-2 text-warning"></i>Why This Matters</h6>
+          <ul class="list-unstyled mb-0">
+            {% for tip in [
+              ("check-circle text-success", "More accurate career matches"),
+              ("check-circle text-success", "Personalized skill gap analysis"),
+              ("check-circle text-success", "Tailored learning roadmaps"),
+              ("check-circle text-success", "Role-specific interview prep"),
+              ("check-circle text-success", "Smarter resume feedback")
+            ] %}
+            <li class="d-flex gap-2 mb-2">
+              <i class="bi bi-{{ tip[0] }} mt-1 flex-shrink-0"></i>
+              <small>{{ tip[1] }}</small>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="cm-card">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3"><i class="bi bi-lightning me-2 text-info"></i>Quick Actions</h6>
+          <div class="d-grid gap-2">
+            <a href="{{ url_for('chat') }}" class="btn btn-outline-accent btn-sm">
+              <i class="bi bi-chat-dots me-2"></i>Chat with AI Advisor
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-speedometer2 me-2"></i>View Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

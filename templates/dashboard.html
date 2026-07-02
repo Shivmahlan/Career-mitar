@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — CareerMentor AI{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Header -->
+  <div class="row mb-4 animate-fade-up">
+    <div class="col-12">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="cm-page-icon text-teal"><i class="bi bi-speedometer2"></i></div>
+          <div>
+            <h1 class="h2 fw-bold mb-0">Career Dashboard</h1>
+            <p class="text-muted mb-0">Track your progress and career journey</p>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Edit Profile
+          </a>
+          <a href="{{ url_for('chat') }}" class="btn btn-accent btn-sm">
+            <i class="bi bi-chat-dots me-1"></i>Open AI Advisor
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4 animate-fade-up">
+    {% set stat_cards = [
+      ("chat-dots-fill",  "text-accent",   "bg-accent-subtle",  "AI Conversations",    stats.total_messages|string,  "Total messages exchanged"),
+      ("calendar-check",  "text-success",  "bg-success-subtle", "Sessions Completed",  stats.sessions|string,        "Career counseling sessions"),
+      ("person-check",    "text-warning",  "bg-warning-subtle", "Profile Complete",    (stats.profile_complete * 100 // stats.profile_fields)|string + "%", stats.profile_complete|string + "/" + stats.profile_fields|string + " fields"),
+      ("stars",           "text-purple",   "bg-purple-subtle",  "AI Model",            "Granite",                    "IBM Watsonx.ai powered")
+    ] %}
+    {% for icon, color, bg, label, val, sub in stat_cards %}
+    <div class="col-sm-6 col-xl-3">
+      <div class="cm-stat-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+          <span class="text-muted small">{{ label }}</span>
+          <div class="cm-stat-icon {{ color }} {{ bg }}"><i class="bi bi-{{ icon }}"></i></div>
+        </div>
+        <div class="cm-stat-number {{ color }}">{{ val }}</div>
+        <div class="text-muted small">{{ sub }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+
+      <!-- Profile Overview -->
+      {% if profile %}
+      <div class="cm-card mb-4 animate-fade-up">
+        <div class="cm-card-header">
+          <i class="bi bi-person-circle me-2 text-accent"></i>Profile Overview
+          <a href="{{ url_for('profile') }}" class="btn btn-outline-secondary btn-xs ms-auto">Edit</a>
+        </div>
+        <div class="card-body p-4">
+          <div class="row g-3">
+            <div class="col-md-3 text-center">
+              <div class="cm-profile-avatar mx-auto mb-2">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <div class="fw-semibold">{{ profile.get('name','—') }}</div>
+              <div class="text-muted small">{{ profile.get('education','—') }}</div>
+            </div>
+            <div class="col-md-9">
+              <div class="row g-2">
+                {% set profile_fields = [
+                  ("Major","major"),("GPA","gpa"),("Location","location"),
+                  ("Goals","goals"),("Experience","experience"),("Certifications","certifications")
+                ] %}
+                {% for label, key in profile_fields %}
+                {% if profile.get(key) %}
+                <div class="col-sm-6">
+                  <div class="cm-profile-field">
+                    <span class="text-muted small d-block">{{ label }}</span>
+                    <span class="small">{{ profile.get(key, '—')[:80] }}{% if profile.get(key,'') | length > 80 %}…{% endif %}</span>
+                  </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          {% if profile.get('skills') %}
+          <div class="mt-3 pt-3 border-top border-secondary-subtle">
+            <p class="text-muted small mb-2 fw-medium">SKILLS</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for skill in profile.get('skills','').split(',')[:12] %}
+              <span class="badge cm-skill-badge">{{ skill.strip() }}</span>
+              {% endfor %}
+              {% if profile.get('skills','').split(',')|length > 12 %}
+              <span class="badge bg-secondary">+{{ profile.get('skills','').split(',')|length - 12 }} more</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Profile Completeness -->
+          <div class="mt-3 pt-3 border-top border-secondary-subtle">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small text-muted">Profile Completeness</span>
+              <span class="small fw-semibold text-accent">
+                {{ (stats.profile_complete * 100 // stats.profile_fields) }}%
+              </span>
+            </div>
+            <div class="progress cm-progress">
+              <div class="progress-bar bg-accent"
+                   style="width: {{ (stats.profile_complete * 100 // stats.profile_fields) }}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="cm-card mb-4 animate-fade-up">
+        <div class="card-body p-4 text-center py-5">
+          <i class="bi bi-person-circle display-4 text-muted mb-3"></i>
+          <h5>No Profile Yet</h5>
+          <p class="text-muted mb-3">Build your profile to unlock personalized career guidance</p>
+          <a href="{{ url_for('profile') }}" class="btn btn-accent">
+            <i class="bi bi-person-plus me-2"></i>Build My Profile
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Conversation History -->
+      <div class="cm-card animate-fade-up">
+        <div class="cm-card-header">
+          <i class="bi bi-clock-history me-2 text-info"></i>Recent Conversations
+          {% if history %}
+          <button class="btn btn-outline-danger btn-xs ms-auto" id="clearHistoryBtn">Clear All</button>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if history %}
+            {% set displayed = namespace(count=0) %}
+            {% for msg in history | reverse %}
+              {% if displayed.count < 8 %}
+                {% set displayed.count = displayed.count + 1 %}
+            <div class="cm-history-item {{ 'user-item' if msg.role == 'user' else 'bot-item' }}">
+              <div class="cm-history-role">
+                {% if msg.role == 'user' %}
+                <i class="bi bi-person-fill text-accent"></i> You
+                {% else %}
+                <i class="bi bi-robot text-purple"></i> CareerMentor AI
+                {% endif %}
+              </div>
+              <div class="cm-history-content text-truncate">
+                {{ msg.content[:120] }}{% if msg.content | length > 120 %}…{% endif %}
+              </div>
+            </div>
+              {% endif %}
+            {% endfor %}
+            <div class="p-3 text-center">
+              <a href="{{ url_for('chat') }}" class="btn btn-accent btn-sm">
+                <i class="bi bi-chat-dots me-1"></i>Continue Conversation
+              </a>
+            </div>
+          {% else %}
+          <div class="p-4 text-center py-5">
+            <i class="bi bi-chat-dots display-5 text-muted mb-3"></i>
+            <p class="text-muted mb-3">No conversations yet</p>
+            <a href="{{ url_for('chat') }}" class="btn btn-accent btn-sm">
+              <i class="bi bi-chat-dots me-1"></i>Start a Conversation
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+
+      <!-- Quick Tools -->
+      <div class="cm-card mb-4 animate-fade-left">
+        <div class="cm-card-header">
+          <i class="bi bi-lightning me-2 text-warning"></i>Quick Tools
+        </div>
+        <div class="card-body p-4">
+          <div class="d-grid gap-2">
+            {% set tools = [
+              ("chat-dots",          "btn-accent",               "chat",      "Chat with AI Advisor"),
+              ("compass",            "btn-outline-accent",        "chat",      "Career Recommendations"),
+              ("map",                "btn-outline-info",          "chat",      "Generate Roadmap"),
+              ("file-earmark-text",  "btn-outline-warning",       "chat",      "Analyze Resume"),
+              ("mic",                "btn-outline-secondary",     "chat",      "Interview Prep"),
+            ] %}
+            {% for icon, cls, endpoint, label in tools %}
+            <a href="{{ url_for(endpoint) }}" class="btn {{ cls }} btn-sm text-start">
+              <i class="bi bi-{{ icon }} me-2"></i>{{ label }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Career Insights -->
+      <div class="cm-card mb-4 animate-fade-left">
+        <div class="cm-card-header">
+          <i class="bi bi-graph-up-arrow me-2 text-success"></i>Career Insights
+        </div>
+        <div class="card-body p-4">
+          <div class="cm-insight-item mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small">AI/ML Engineer</span>
+              <span class="small text-success fw-semibold">+35% demand</span>
+            </div>
+            <div class="progress cm-progress-sm">
+              <div class="progress-bar bg-success" style="width: 92%"></div>
+            </div>
+          </div>
+          <div class="cm-insight-item mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small">Data Scientist</span>
+              <span class="small text-accent fw-semibold">+28% demand</span>
+            </div>
+            <div class="progress cm-progress-sm">
+              <div class="progress-bar bg-accent" style="width: 85%"></div>
+            </div>
+          </div>
+          <div class="cm-insight-item mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small">Cloud Architect</span>
+              <span class="small text-info fw-semibold">+22% demand</span>
+            </div>
+            <div class="progress cm-progress-sm">
+              <div class="progress-bar bg-info" style="width: 78%"></div>
+            </div>
+          </div>
+          <div class="cm-insight-item mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small">Cybersecurity Analyst</span>
+              <span class="small text-warning fw-semibold">+19% demand</span>
+            </div>
+            <div class="progress cm-progress-sm">
+              <div class="progress-bar bg-warning" style="width: 72%"></div>
+            </div>
+          </div>
+          <div class="cm-insight-item">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small">Product Manager</span>
+              <span class="small text-purple fw-semibold">+15% demand</span>
+            </div>
+            <div class="progress cm-progress-sm">
+              <div class="progress-bar bg-purple" style="width: 65%"></div>
+            </div>
+          </div>
+          <p class="text-muted small mt-3 mb-0">
+            <i class="bi bi-info-circle me-1"></i>Market trends 2024–2025
+          </p>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="cm-card animate-fade-left">
+        <div class="cm-card-header">
+          <i class="bi bi-lightbulb me-2 text-orange"></i>Daily Career Tips
+        </div>
+        <div class="card-body p-4">
+          <div class="cm-tip-carousel" id="tipCarousel">
+            {% set tips = [
+              ("Network first, skills second — 85% of jobs are filled through connections.", "bi-people-fill", "text-accent"),
+              ("Update your LinkedIn profile weekly with new skills and projects.", "bi-linkedin", "text-info"),
+              ("One personal project beats 10 online courses on a resume.", "bi-code-slash", "text-success"),
+              ("Apply to stretch roles — hiring managers appreciate ambition.", "bi-rocket", "text-warning"),
+              ("Follow 5 industry leaders on LinkedIn and engage with their posts daily.", "bi-hand-thumbs-up", "text-purple"),
+            ] %}
+            {% for tip, icon, color in tips %}
+            <div class="cm-tip {% if not loop.first %}d-none{% endif %}">
+              <div class="cm-tip-icon {{ color }} mb-2"><i class="bi {{ icon }}"></i></div>
+              <p class="small mb-0">{{ tip }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-outline-secondary btn-xs" id="prevTip">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="text-muted small" id="tipCounter">1 / {{ tips | length }}</span>
+            <button class="btn btn-outline-secondary btn-xs" id="nextTip">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
