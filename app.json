@@ -1,0 +1,72 @@
+{
+  "name": "CareerMentor AI",
+  "description": "IBM Watsonx.ai (Granite) powered agentic career counseling companion for students.",
+  "keywords": ["python", "flask", "ibm-watsonx", "ai", "career"],
+  "website": "",
+  "repository": "",
+  "logo": "",
+  "stack": "heroku-24",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "env": {
+    "WATSONX_API_KEY": {
+      "description": "Your IBM Cloud API key from https://cloud.ibm.com/iam/apikeys",
+      "required": true
+    },
+    "WATSONX_PROJECT_ID": {
+      "description": "Your IBM Watsonx project ID from https://dataplatform.cloud.ibm.com",
+      "required": true
+    },
+    "WATSONX_URL": {
+      "description": "IBM Watsonx regional URL (e.g. https://us-south.ml.cloud.ibm.com)",
+      "value": "https://au-syd.ml.cloud.ibm.com",
+      "required": true
+    },
+    "WATSONX_MODEL_ID": {
+      "description": "Watsonx model ID to use for generation",
+      "value": "meta-llama/llama-3-3-70b-instruct",
+      "required": false
+    },
+    "FLASK_SECRET_KEY": {
+      "description": "Random secret key for Flask session security",
+      "generator": "secret",
+      "required": true
+    },
+    "FLASK_ENV": {
+      "description": "Flask environment",
+      "value": "production",
+      "required": false
+    },
+    "FLASK_DEBUG": {
+      "description": "Enable Flask debug mode (set to False in production)",
+      "value": "False",
+      "required": false
+    },
+    "MAX_TOKENS": {
+      "description": "Maximum tokens for AI response generation",
+      "value": "1500",
+      "required": false
+    },
+    "TEMPERATURE": {
+      "description": "Model temperature for response creativity",
+      "value": "0.7",
+      "required": false
+    },
+    "TOP_P": {
+      "description": "Top-p sampling parameter",
+      "value": "0.9",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "addons": [],
+  "scripts": {}
+}
