@@ -123,7 +123,7 @@ def get_watsonx_model():
     api_key    = os.getenv("WATSONX_API_KEY", "")
     project_id = os.getenv("WATSONX_PROJECT_ID", "")
     url        = os.getenv("WATSONX_URL", "https://au-syd.ml.cloud.ibm.com")
-    model_id   = os.getenv("WATSONX_MODEL_ID", "ibm/granite-3-3-8b-instruct")
+    model_id   = os.getenv("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
     if not api_key or not project_id:
         return None
     try:
