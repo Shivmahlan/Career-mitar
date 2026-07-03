@@ -80,7 +80,7 @@ Open `.env` and fill in your credentials:
 WATSONX_API_KEY=your_ibm_cloud_api_key
 WATSONX_PROJECT_ID=your_watsonx_project_id
 WATSONX_URL=https://us-south.ml.cloud.ibm.com
-WATSONX_MODEL_ID=ibm/granite-3-3-8b-instruct
+WATSONX_MODEL_ID=meta-llama/llama-3-3-70b-instruct
 FLASK_SECRET_KEY=your-random-secret-key-here
 ```
 
@@ -230,7 +230,7 @@ gunicorn app:app --bind 0.0.0.0:5000 --workers 4 --timeout 120
 
 | Layer | Technology |
 |---|---|
-| **LLM** | IBM Watsonx.ai · Granite 3.3 8B Instruct |
+| **LLM** | IBM Watsonx.ai · meta-llama/llama-3-3-70b-instruct|
 | **Backend** | Python 3.11 · Flask 3.0 |
 | **Frontend** | Bootstrap 5.3 · Vanilla JS · Marked.js |
 | **Styling** | Custom CSS · Dark Mode · CSS Animations |
