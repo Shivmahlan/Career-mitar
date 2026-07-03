@@ -1,20 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   CareerMentor AI — chat.js
+   Career Mitar — chat.js
    ═══════════════════════════════════════════════════════════════════════════ */
 
 "use strict";
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
-const chatInput      = document.getElementById("chatInput");
-const sendBtn        = document.getElementById("sendBtn");
-const chatMessages   = document.getElementById("chatMessages");
-const typingIndicator= document.getElementById("typingIndicator");
-const charCount      = document.getElementById("charCount");
-const clearChatBtn   = document.getElementById("clearChatBtn");
-const sidebarToggle  = document.getElementById("sidebarToggle");
-const chatSidebar    = document.getElementById("chatSidebar");
-const modelBadge     = document.getElementById("modelBadge");
-const tokenCounter   = document.getElementById("tokenCounter");
+const chatInput       = document.getElementById("chatInput");
+const sendBtn         = document.getElementById("sendBtn");
+const chatMessages    = document.getElementById("chatMessages");
+const typingIndicator = document.getElementById("typingIndicator");
+const clearChatBtn    = document.getElementById("clearChatBtn");
+const modelBadge      = document.getElementById("modelBadge");
 
 // ── Fetch API status on load ──────────────────────────────────────────────
 fetch("/api/status")
@@ -38,12 +34,11 @@ fetch("/api/status")
     if (modelBadge) modelBadge.textContent = "Offline";
   });
 
-// ── Textarea auto-resize + char count ────────────────────────────────────
+// ── Textarea auto-resize ──────────────────────────────────────────────────
 chatInput.addEventListener("input", function () {
   this.style.height = "auto";
-  this.style.height = Math.min(this.scrollHeight, 160) + "px";
+  this.style.height = Math.min(this.scrollHeight, 180) + "px";
   const len = this.value.length;
-  charCount.textContent = `${len}/2000`;
   sendBtn.disabled = len === 0 || len > 2000;
 });
 
@@ -56,13 +51,6 @@ chatInput.addEventListener("keydown", function (e) {
 });
 
 sendBtn.addEventListener("click", sendMessage);
-
-// ── Sidebar toggle (mobile) ───────────────────────────────────────────────
-if (sidebarToggle) {
-  sidebarToggle.addEventListener("click", () =>
-    chatSidebar.classList.toggle("open")
-  );
-}
 
 // ── Render markdown safely using marked.js ─────────────────────────────────
 function renderMarkdown(text) {
@@ -77,43 +65,27 @@ function renderMarkdown(text) {
     .replace(/\n/g, "<br>");
 }
 
-// ── Token counter updater ─────────────────────────────────────────────────
-function updateTokenCounter(sessionTokens) {
-  if (!tokenCounter || !sessionTokens) return;
-  tokenCounter.innerHTML =
-    `<i class="bi bi-lightning-charge-fill me-1"></i>` +
-    `Session tokens: <strong>${sessionTokens.total.toLocaleString()}</strong>` +
-    ` <span class="text-muted">(↑${sessionTokens.input} in · ${sessionTokens.generated} out)</span>`;
-  tokenCounter.classList.remove("d-none");
-}
-
-// ── Append a message bubble ───────────────────────────────────────────────
+// ── Append a message bubble (Gemini style) ────────────────────────────────
 function appendMessage(role, content, timestamp, tokenUsage) {
   const isBot = role === "assistant" || role === "bot";
+
+  // Hide welcome screen once the first message is sent
+  const welcome = document.getElementById("welcomeMsg");
+  if (welcome) welcome.remove();
+
   const wrapper = document.createElement("div");
-  wrapper.className = `chat-msg ${isBot ? "bot" : "user"} animate-fade-up`;
+  wrapper.className = `gm-msg ${isBot ? "gm-msg--bot" : "gm-msg--user"} animate-fade-up`;
 
-  const avatarHtml = isBot
-    ? `<div class="cm-avatar bot-avatar"><i class="bi bi-robot"></i></div>`
-    : `<div class="cm-avatar user-avatar"><i class="bi bi-person"></i></div>`;
-
-  const bubbleClass = isBot ? "msg-bubble" : "msg-bubble user-bubble";
-  const renderedContent = isBot ? renderMarkdown(content) : escapeHtml(content);
-
-  const tokenBadge = (isBot && tokenUsage)
-    ? `<span class="token-badge ms-2" title="Tokens used for this response">
-         <i class="bi bi-lightning-charge"></i> ${tokenUsage.total_tokens} tokens
-         <span class="token-detail">(${tokenUsage.input_tokens} in · ${tokenUsage.generated_tokens} out)</span>
-       </span>`
+  const botIcon = isBot
+    ? `<div class="gm-bot-icon"><i class="bi bi-mortarboard-fill"></i></div>`
     : "";
 
+  const bodyClass = isBot ? "gm-msg-body" : "gm-msg-body gm-msg-body--user";
+  const renderedContent = isBot ? renderMarkdown(content) : escapeHtml(content);
+
   wrapper.innerHTML = `
-    ${isBot ? avatarHtml : ""}
-    <div class="msg-content">
-      <div class="${bubbleClass}">${renderedContent}</div>
-      <div class="msg-meta">${isBot ? "CareerMentor AI" : "You"} · ${timestamp || "now"}${tokenBadge}</div>
-    </div>
-    ${!isBot ? avatarHtml : ""}
+    ${botIcon}
+    <div class="${bodyClass}">${renderedContent}</div>
   `;
 
   chatMessages.appendChild(wrapper);
@@ -140,21 +112,14 @@ async function sendMessage() {
 
   const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  // Append user message
   appendMessage("user", text, now);
 
-  // Reset input
   chatInput.value = "";
   chatInput.style.height = "auto";
-  charCount.textContent = "0/2000";
   sendBtn.disabled = true;
 
-  // Show typing indicator
   typingIndicator.classList.remove("d-none");
   scrollToBottom();
-
-  // Disable sidebar toggle during streaming
-  if (sidebarToggle) sidebarToggle.disabled = true;
 
   try {
     const res = await fetch("/api/chat", {
@@ -168,7 +133,6 @@ async function sendMessage() {
 
     if (res.ok) {
       appendMessage("assistant", data.response, data.timestamp, data.token_usage);
-      updateTokenCounter(data.session_tokens);
     } else {
       appendMessage("assistant", `⚠️ Error: ${data.error || "Unknown error occurred."}`, now);
     }
@@ -176,7 +140,6 @@ async function sendMessage() {
     typingIndicator.classList.add("d-none");
     appendMessage("assistant", "⚠️ Network error. Please check your connection and try again.", now);
   } finally {
-    if (sidebarToggle) sidebarToggle.disabled = false;
     chatInput.focus();
   }
 }
@@ -186,8 +149,6 @@ function sendQuickPrompt(prompt) {
   chatInput.value = prompt;
   chatInput.dispatchEvent(new Event("input"));
   sendMessage();
-  // Close sidebar on mobile
-  if (chatSidebar) chatSidebar.classList.remove("open");
 }
 
 // ── Clear history ─────────────────────────────────────────────────────────
@@ -195,28 +156,69 @@ if (clearChatBtn) {
   clearChatBtn.addEventListener("click", async () => {
     if (!confirm("Clear conversation history?")) return;
     await fetch("/api/clear-history", { method: "POST" });
-    // Remove all messages except the welcome message
-    const msgs = chatMessages.querySelectorAll(".chat-msg:not(#welcomeMsg)");
-    msgs.forEach((m) => m.remove());
+    // Remove all messages and restore welcome screen
+    chatMessages.querySelectorAll(".gm-msg").forEach((m) => m.remove());
+    const existing = document.getElementById("welcomeMsg");
+    if (!existing) {
+      const welcome = document.createElement("div");
+      welcome.id = "welcomeMsg";
+      welcome.className = "gm-welcome";
+      welcome.innerHTML = `
+        <div class="gm-welcome-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <h1 class="gm-welcome-heading">Hello there</h1>
+        <p class="gm-welcome-sub">How can Career Mitar help you today?</p>
+      `;
+      chatMessages.prepend(welcome);
+    }
   });
 }
 
 // ── Resume Analyzer ───────────────────────────────────────────────────────
-const resumeFileInput   = document.getElementById("resumeFile");
-const fileSelected      = document.getElementById("fileSelected");
-const fileNameSpan      = document.getElementById("fileName");
-const dropZone          = document.getElementById("dropZone");
-const analyzeResumeBtn  = document.getElementById("analyzeResumeBtn");
-const resumeResult      = document.getElementById("resumeResult");
+const resumeFileInput     = document.getElementById("resumeFile");
+const dropZone            = document.getElementById("dropZone");
+const dropZoneIdle        = document.getElementById("dropZoneIdle");
+const dropZoneReady       = document.getElementById("dropZoneReady");
+const fileNameSpan        = document.getElementById("fileName");
+const fileSizeSpan        = document.getElementById("fileSize");
+const clearFileBtn        = document.getElementById("clearFileBtn");
+const analyzeResumeBtn    = document.getElementById("analyzeResumeBtn");
+const resumeResult        = document.getElementById("resumeResult");
 const resumeResultContent = document.getElementById("resumeResultContent");
-const resumeTextArea    = document.getElementById("resumeText");
+const resumeTextArea      = document.getElementById("resumeText");
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+function showFileReady(file) {
+  fileNameSpan.textContent = file.name;
+  fileSizeSpan.textContent = formatBytes(file.size);
+  dropZoneIdle.classList.add("d-none");
+  dropZoneReady.classList.remove("d-none");
+  dropZone.classList.add("cm-drop-zone--ready");
+}
+
+function clearFile() {
+  resumeFileInput.value = "";
+  fileNameSpan.textContent = "";
+  fileSizeSpan.textContent = "";
+  dropZoneReady.classList.add("d-none");
+  dropZoneIdle.classList.remove("d-none");
+  dropZone.classList.remove("cm-drop-zone--ready");
+}
 
 if (resumeFileInput) {
   resumeFileInput.addEventListener("change", function () {
-    if (this.files[0]) {
-      fileNameSpan.textContent = this.files[0].name;
-      fileSelected.classList.remove("d-none");
-    }
+    if (this.files[0]) showFileReady(this.files[0]);
+  });
+}
+
+if (clearFileBtn) {
+  clearFileBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent dropZone click from re-opening picker
+    clearFile();
   });
 }
 
@@ -232,8 +234,7 @@ if (dropZone) {
     dropZone.classList.remove("drag-over");
     if (e.dataTransfer.files[0]) {
       resumeFileInput.files = e.dataTransfer.files;
-      fileNameSpan.textContent = e.dataTransfer.files[0].name;
-      fileSelected.classList.remove("d-none");
+      showFileReady(e.dataTransfer.files[0]);
     }
   });
   dropZone.addEventListener("click", () => resumeFileInput.click());
@@ -268,6 +269,17 @@ if (analyzeResumeBtn) {
     } finally {
       setLoading(analyzeResumeBtn, false, '<i class="bi bi-stars me-1"></i>Analyze with AI');
     }
+  });
+}
+
+// Reset modal to idle state whenever it is opened
+const resumeModalEl = document.getElementById("resumeModal");
+if (resumeModalEl) {
+  resumeModalEl.addEventListener("show.bs.modal", () => {
+    clearFile();
+    if (resumeResult) resumeResult.classList.add("d-none");
+    if (resumeResultContent) resumeResultContent.innerHTML = "";
+    if (resumeTextArea) resumeTextArea.value = "";
   });
 }
 
