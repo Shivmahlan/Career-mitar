@@ -171,11 +171,11 @@ def build_system_context(profile: dict) -> str:
     return "\n".join(lines)
 
 
-def chat_with_granite(user_message: str, history: list, profile: dict) -> str:
-    """Send a message to Granite and return the response text."""
+def chat_with_granite(user_message: str, history: list, profile: dict) -> tuple:
+    """Send a message to Granite and return (response_text, token_usage dict)."""
     model = get_watsonx_model()
     if model is None:
-        return demo_response(user_message, profile)
+        return demo_response(user_message, profile), None
 
     system_ctx = build_system_context(profile)
 
@@ -189,11 +189,22 @@ def chat_with_granite(user_message: str, history: list, profile: dict) -> str:
     prompt = "".join(prompt_parts)
 
     try:
-        result = model.generate_text(prompt=prompt)
-        return result.strip() if isinstance(result, str) else str(result)
+        raw = model.generate_text(prompt=prompt, raw_response=True)
+        text = raw["results"][0]["generated_text"].strip()
+        token_usage = {
+            "input_tokens":     raw["results"][0].get("input_token_count", 0),
+            "generated_tokens": raw["results"][0].get("generated_token_count", 0),
+            "total_tokens":     raw["results"][0].get("input_token_count", 0)
+                                + raw["results"][0].get("generated_token_count", 0),
+        }
+        # accumulate session-level totals
+        session["total_tokens"] = session.get("total_tokens", 0) + token_usage["total_tokens"]
+        session["total_input_tokens"] = session.get("total_input_tokens", 0) + token_usage["input_tokens"]
+        session["total_generated_tokens"] = session.get("total_generated_tokens", 0) + token_usage["generated_tokens"]
+        return text, token_usage
     except Exception as exc:
         app.logger.error("Granite generation error: %s", exc)
-        return f"I encountered an error reaching the AI model. Please verify your API credentials. ({exc})"
+        return f"I encountered an error reaching the AI model. Please verify your API credentials. ({exc})", None
 
 
 def demo_response(message: str, profile: dict) -> str:
@@ -342,15 +353,21 @@ def api_chat():
     profile_data = session.get("profile", {})
     history      = session.get("chat_history", [])
 
-    response = chat_with_granite(user_message, history, profile_data)
+    response, token_usage = chat_with_granite(user_message, history, profile_data)
 
     history.append({"role": "user",      "content": user_message})
     history.append({"role": "assistant", "content": response})
     session["chat_history"] = history[-40:]   # keep last 40 messages
 
     return jsonify({
-        "response":  response,
-        "timestamp": datetime.now().strftime("%H:%M"),
+        "response":    response,
+        "timestamp":   datetime.now().strftime("%H:%M"),
+        "token_usage": token_usage,
+        "session_tokens": {
+            "total":     session.get("total_tokens", 0),
+            "input":     session.get("total_input_tokens", 0),
+            "generated": session.get("total_generated_tokens", 0),
+        },
     })
 
 
@@ -379,8 +396,8 @@ def analyze_resume():
         "6. Tailored action verbs and achievement rewrites\n\n"
         f"RESUME CONTENT:\n{resume_text}"
     )
-    response = chat_with_granite(prompt, history, profile_data)
-    return jsonify({"analysis": response, "timestamp": datetime.now().strftime("%H:%M")})
+    response, token_usage = chat_with_granite(prompt, history, profile_data)
+    return jsonify({"analysis": response, "timestamp": datetime.now().strftime("%H:%M"), "token_usage": token_usage})
 
 
 @app.route("/api/skill-assessment", methods=["POST"])
@@ -401,8 +418,8 @@ def skill_assessment():
         "4. Quick wins (skills learnable in < 2 weeks)\n"
         "5. Estimated time to job-ready status"
     )
-    response = chat_with_granite(prompt, history, profile_data)
-    return jsonify({"assessment": response, "timestamp": datetime.now().strftime("%H:%M")})
+    response, token_usage = chat_with_granite(prompt, history, profile_data)
+    return jsonify({"assessment": response, "timestamp": datetime.now().strftime("%H:%M"), "token_usage": token_usage})
 
 
 @app.route("/api/career-recommendations", methods=["POST"])
@@ -424,8 +441,8 @@ def career_recommendations():
         "- 90-day action plan to get started\n\n"
         + (f"Additional context: {extra_info}" if extra_info else "")
     )
-    response = chat_with_granite(prompt, history, profile_data)
-    return jsonify({"recommendations": response, "timestamp": datetime.now().strftime("%H:%M")})
+    response, token_usage = chat_with_granite(prompt, history, profile_data)
+    return jsonify({"recommendations": response, "timestamp": datetime.now().strftime("%H:%M"), "token_usage": token_usage})
 
 
 @app.route("/api/generate-roadmap", methods=["POST"])
@@ -446,8 +463,8 @@ def generate_roadmap():
         "For each phase include: specific courses, certifications, projects, and milestones.\n"
         "End with a list of top job boards and networking strategies."
     )
-    response = chat_with_granite(prompt, history, profile_data)
-    return jsonify({"roadmap": response, "timestamp": datetime.now().strftime("%H:%M")})
+    response, token_usage = chat_with_granite(prompt, history, profile_data)
+    return jsonify({"roadmap": response, "timestamp": datetime.now().strftime("%H:%M"), "token_usage": token_usage})
 
 
 @app.route("/api/interview-prep", methods=["POST"])
@@ -468,8 +485,8 @@ def interview_prep():
         "5. Day-of preparation checklist\n"
         "6. Salary negotiation tips for this role"
     )
-    response = chat_with_granite(prompt, history, profile_data)
-    return jsonify({"prep": response, "timestamp": datetime.now().strftime("%H:%M")})
+    response, token_usage = chat_with_granite(prompt, history, profile_data)
+    return jsonify({"prep": response, "timestamp": datetime.now().strftime("%H:%M"), "token_usage": token_usage})
 
 
 @app.route("/api/clear-history", methods=["POST"])
@@ -499,7 +516,12 @@ def api_status():
         "model_ready":    model is not None,
         "pdf_support":    PDF_SUPPORT,
         "docx_support":   DOCX_SUPPORT,
-        "model_id":       os.getenv("WATSONX_MODEL_ID", "ibm/granite-3-3-8b-instruct"),
+        "model_id":       os.getenv("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct"),
+        "session_tokens": {
+            "total":     session.get("total_tokens", 0),
+            "input":     session.get("total_input_tokens", 0),
+            "generated": session.get("total_generated_tokens", 0),
+        },
     })
 
 

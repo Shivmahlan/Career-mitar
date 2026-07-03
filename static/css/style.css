@@ -687,6 +687,42 @@ body {
   font-size: 11px;
 }
 
+/* Token counter in chat header */
+.token-counter {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(124,92,216,.1);
+  border: 1px solid rgba(124,92,216,.2);
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+.token-counter strong {
+  color: #a78bfa;
+}
+
+/* Token badge on each message */
+.token-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  background: rgba(124,92,216,.08);
+  border: 1px solid rgba(124,92,216,.15);
+  border-radius: 10px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+.token-badge .bi {
+  color: #a78bfa;
+  font-size: 9px;
+}
+.token-detail {
+  font-size: 9px;
+  opacity: .75;
+}
+
 /* Mobile sidebar */
 @media (max-width: 991.98px) {
   .chat-sidebar {

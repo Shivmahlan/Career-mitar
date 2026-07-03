@@ -14,6 +14,7 @@ const clearChatBtn   = document.getElementById("clearChatBtn");
 const sidebarToggle  = document.getElementById("sidebarToggle");
 const chatSidebar    = document.getElementById("chatSidebar");
 const modelBadge     = document.getElementById("modelBadge");
+const tokenCounter   = document.getElementById("tokenCounter");
 
 // ── Fetch API status on load ──────────────────────────────────────────────
 fetch("/api/status")
@@ -76,8 +77,18 @@ function renderMarkdown(text) {
     .replace(/\n/g, "<br>");
 }
 
+// ── Token counter updater ─────────────────────────────────────────────────
+function updateTokenCounter(sessionTokens) {
+  if (!tokenCounter || !sessionTokens) return;
+  tokenCounter.innerHTML =
+    `<i class="bi bi-lightning-charge-fill me-1"></i>` +
+    `Session tokens: <strong>${sessionTokens.total.toLocaleString()}</strong>` +
+    ` <span class="text-muted">(↑${sessionTokens.input} in · ${sessionTokens.generated} out)</span>`;
+  tokenCounter.classList.remove("d-none");
+}
+
 // ── Append a message bubble ───────────────────────────────────────────────
-function appendMessage(role, content, timestamp) {
+function appendMessage(role, content, timestamp, tokenUsage) {
   const isBot = role === "assistant" || role === "bot";
   const wrapper = document.createElement("div");
   wrapper.className = `chat-msg ${isBot ? "bot" : "user"} animate-fade-up`;
@@ -89,11 +100,18 @@ function appendMessage(role, content, timestamp) {
   const bubbleClass = isBot ? "msg-bubble" : "msg-bubble user-bubble";
   const renderedContent = isBot ? renderMarkdown(content) : escapeHtml(content);
 
+  const tokenBadge = (isBot && tokenUsage)
+    ? `<span class="token-badge ms-2" title="Tokens used for this response">
+         <i class="bi bi-lightning-charge"></i> ${tokenUsage.total_tokens} tokens
+         <span class="token-detail">(${tokenUsage.input_tokens} in · ${tokenUsage.generated_tokens} out)</span>
+       </span>`
+    : "";
+
   wrapper.innerHTML = `
     ${isBot ? avatarHtml : ""}
     <div class="msg-content">
       <div class="${bubbleClass}">${renderedContent}</div>
-      <div class="msg-meta">${isBot ? "CareerMentor AI" : "You"} · ${timestamp || "now"}</div>
+      <div class="msg-meta">${isBot ? "CareerMentor AI" : "You"} · ${timestamp || "now"}${tokenBadge}</div>
     </div>
     ${!isBot ? avatarHtml : ""}
   `;
@@ -149,7 +167,8 @@ async function sendMessage() {
     typingIndicator.classList.add("d-none");
 
     if (res.ok) {
-      appendMessage("assistant", data.response, data.timestamp);
+      appendMessage("assistant", data.response, data.timestamp, data.token_usage);
+      updateTokenCounter(data.session_tokens);
     } else {
       appendMessage("assistant", `⚠️ Error: ${data.error || "Unknown error occurred."}`, now);
     }
