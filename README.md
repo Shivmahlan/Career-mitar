@@ -3,6 +3,8 @@
 > **IBM Watsonx.ai (Granite) · Flask · Bootstrap 5 · Dark Mode**  
 > Personalized AI-powered career guidance for every student.
 
+**🔗 Live Demo:** [careermitar.up.railway.app](https://careermitar.up.railway.app/)
+
 ---
 
 ## ✨ Features
@@ -247,5 +249,6 @@ MIT License — Free to use, modify, and deploy.
 
 <div align="center">
   <strong>Built with ❤️ using IBM Watsonx.ai Granite</strong><br>
-  <em>Empowering every student to find their perfect career path</em>
+  <em>Empowering every student to find their perfect career path</em><br><br>
+  <a href="https://careermitar.up.railway.app/">🔗 Live Demo</a>
 </div>
