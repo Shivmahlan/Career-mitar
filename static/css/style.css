@@ -1,10 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Career Mitar — Amber Minimal Stylesheet
-   Light mode · Bootstrap 5.3 extensions · Amber palette
+   Light + Dark mode · Bootstrap 5.3 extensions · Amber palette
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── CSS Custom Properties ─────────────────────────────────────────────── */
-:root {
+/* ── Light mode (default) ───────────────────────────────────────────────── */
+:root,
+[data-theme="light"] {
   /* Amber core */
   --amber:         #f59e0b;
   --amber-hover:   #d97706;
@@ -23,7 +24,7 @@
   --text-muted:    #78716c;
   --text-faint:    #a8a29e;
 
-  /* Accent aliases (keep class names compatible) */
+  /* Accent aliases */
   --accent:        #f59e0b;
   --accent-hover:  #d97706;
   --purple:        #a78bfa;
@@ -42,6 +43,36 @@
   --radius:        12px;
   --radius-lg:     16px;
   --transition:    0.18s ease;
+
+  --navbar-bg:     rgba(250,250,249,0.92);
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --amber:         #fbbf24;
+  --amber-hover:   #f59e0b;
+  --amber-light:   rgba(251,191,36,.12);
+  --amber-subtle:  rgba(251,191,36,.06);
+  --amber-mid:     rgba(251,191,36,.25);
+  --amber-dark:    #fde68a;
+
+  --bg:            #0d1117;
+  --surface:       #161b22;
+  --surface2:      #1c2333;
+  --border:        #30363d;
+  --border-strong: #444c56;
+  --text:          #e6edf3;
+  --text-muted:    #8b949e;
+  --text-faint:    #6e7681;
+
+  --accent:        #fbbf24;
+  --accent-hover:  #f59e0b;
+
+  --shadow-sm:     0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:     0 4px 16px rgba(0,0,0,.5);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,.6);
+
+  --navbar-bg:     rgba(13,17,23,0.92);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */
@@ -82,7 +113,7 @@ body {
 
 /* ── Navbar ─────────────────────────────────────────────────────────────── */
 .cm-navbar {
-  background: rgba(250, 250, 249, 0.92) !important;
+  background: var(--navbar-bg) !important;
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
   padding: 12px 0;
@@ -1162,4 +1193,62 @@ body {
   .cm-hero-card { display: none; }
   .display-4 { font-size: 2rem; }
   .cm-cta-card { padding: 40px 20px; }
+}
+
+/* ── Dark mode toggle button ────────────────────────────────────────────── */
+.cm-theme-btn {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all var(--transition);
+  padding: 0;
+}
+
+.cm-theme-btn:hover {
+  background: var(--amber-light);
+  border-color: var(--amber-mid);
+  color: var(--amber-dark);
+}
+
+/* ── Feature card — link variant ────────────────────────────────────────── */
+a.cm-feature-card {
+  color: var(--text);
+  cursor: pointer;
+}
+
+a.cm-feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--amber-mid);
+  box-shadow: 0 10px 30px rgba(245,158,11,.12), 0 0 0 1px rgba(245,158,11,.25);
+  color: var(--text);
+}
+
+a.cm-feature-card h5 { color: var(--text); }
+
+.cm-feature-cta {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--amber-dark);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+a.cm-feature-card:hover .cm-feature-cta {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Dark mode toggler icon invert fix */
+[data-theme="dark"] .navbar-toggler-icon {
+  filter: invert(0.8);
 }

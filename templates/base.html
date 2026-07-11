@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,7 +55,13 @@
             <i class="bi bi-speedometer2 me-1"></i>Dashboard
           </a>
         </li>
-        <li class="nav-item ms-lg-2">
+        <!-- Dark mode toggle -->
+        <li class="nav-item ms-1">
+          <button id="cm-theme-toggle" class="cm-theme-btn" aria-label="Toggle dark mode" title="Toggle dark mode">
+            <i class="bi bi-moon-fill" id="cm-theme-icon"></i>
+          </button>
+        </li>
+        <li class="nav-item ms-lg-1">
           <a class="btn btn-accent btn-sm px-3" href="{{ url_for('profile') }}">
             Get Started <i class="bi bi-arrow-right ms-1"></i>
           </a>
@@ -159,5 +165,30 @@
 <!-- Custom JS -->
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% block scripts %}{% endblock %}
+
+<!-- ── Dark mode ──────────────────────────────────────────────────────────── -->
+<script>
+(function () {
+  const root   = document.documentElement;
+  const btn    = document.getElementById('cm-theme-toggle');
+  const icon   = document.getElementById('cm-theme-icon');
+  const stored = localStorage.getItem('cm-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initial = stored || (prefersDark ? 'dark' : 'light');
+
+  function apply(theme) {
+    root.setAttribute('data-theme', theme);
+    root.setAttribute('data-bs-theme', theme);
+    icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    localStorage.setItem('cm-theme', theme);
+  }
+
+  apply(initial);
+
+  btn.addEventListener('click', function () {
+    apply(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+})();
+</script>
 </body>
 </html>

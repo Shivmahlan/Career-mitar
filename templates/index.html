@@ -72,24 +72,25 @@
     </div>
     <div class="row g-4">
       {% set features = [
-        ("chat-dots-fill",   "text-accent",   "AI Career Chat",        "Have real conversations with your AI counselor. Get instant, personalized career advice 24/7."),
-        ("person-circle",    "text-purple",   "Profile Builder",       "Build a comprehensive academic and professional profile to unlock hyper-personalized guidance."),
-        ("bar-chart-fill",   "text-success",  "Skill Assessment",      "Identify your skill gaps, strengths, and the fastest path to your target role."),
-        ("compass-fill",     "text-warning",  "Career Recommendations","Receive AI-curated top career matches with fit scores based on your unique profile."),
-        ("map-fill",         "text-info",     "Learning Roadmap",      "Get a month-by-month learning plan with courses, certifications, and milestone tracking."),
-        ("file-earmark-text","text-danger",   "Resume Analyzer",       "Upload your resume for instant ATS score, keyword suggestions, and rewrite tips."),
-        ("mic-fill",         "text-orange",   "Interview Prep",        "Practice with role-specific questions, STAR method coaching, and negotiation scripts."),
-        ("speedometer2",     "text-teal",     "Progress Dashboard",    "Track your career journey, milestones, and growth with a beautiful visual dashboard.")
+        ("chat-dots-fill",   "text-accent",   "AI Career Chat",         "Have real conversations with your AI counselor. Get instant, personalized career advice 24/7.",        url_for('chat')),
+        ("person-circle",    "text-purple",   "Profile Builder",        "Build a comprehensive academic and professional profile to unlock hyper-personalized guidance.",         url_for('profile')),
+        ("bar-chart-fill",   "text-success",  "Skill Assessment",       "Identify your skill gaps, strengths, and the fastest path to your target role.",                        url_for('chat') + '?q=Run+a+skill+assessment+for+me'),
+        ("compass-fill",     "text-warning",  "Career Recommendations", "Receive AI-curated top career matches with fit scores based on your unique profile.",                   url_for('chat') + '?q=Give+me+career+recommendations'),
+        ("map-fill",         "text-info",     "Learning Roadmap",       "Get a month-by-month learning plan with courses, certifications, and milestone tracking.",              url_for('chat') + '?q=Generate+my+learning+roadmap'),
+        ("file-earmark-text","text-danger",   "Resume Analyzer",        "Upload your resume for instant ATS score, keyword suggestions, and rewrite tips.",                      url_for('chat') + '?q=Analyze+my+resume'),
+        ("mic-fill",         "text-orange",   "Interview Prep",         "Practice with role-specific questions, STAR method coaching, and negotiation scripts.",                 url_for('chat') + '?q=Help+me+prepare+for+interviews'),
+        ("speedometer2",     "text-teal",     "Progress Dashboard",     "Track your career journey, milestones, and growth with a beautiful visual dashboard.",                  url_for('dashboard'))
       ] %}
-      {% for icon, color, title, desc in features %}
+      {% for icon, color, title, desc, href in features %}
       <div class="col-sm-6 col-lg-3 animate-fade-up">
-        <div class="cm-feature-card h-100">
+        <a href="{{ href }}" class="cm-feature-card h-100 text-decoration-none d-block">
           <div class="cm-feature-icon {{ color }}">
             <i class="bi bi-{{ icon }}"></i>
           </div>
           <h5 class="fw-semibold mt-3 mb-2">{{ title }}</h5>
-          <p class="text-muted small mb-0">{{ desc }}</p>
-        </div>
+          <p class="text-muted small mb-2">{{ desc }}</p>
+          <span class="cm-feature-cta">Open <i class="bi bi-arrow-right ms-1"></i></span>
+        </a>
       </div>
       {% endfor %}
     </div>
