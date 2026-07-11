@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -85,15 +85,69 @@
 
 <!-- ── Footer ───────────────────────────────────────────────────────────── -->
 <footer class="cm-footer mt-auto">
-  <div class="container py-4">
-    <div class="row align-items-center">
-      <div class="col-md-6 mb-2 mb-md-0">
-        <span class="fw-bold text-accent"><i class="bi bi-mortarboard-fill me-1"></i>Career Mitar</span>
-        <span class="text-muted ms-2 small">Powered by IBM Watsonx Granite</span>
+  <div class="container py-5">
+    <div class="row gy-4 align-items-start">
+
+      <!-- Brand + tagline -->
+      <div class="col-md-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="cm-logo-icon"><i class="bi bi-mortarboard-fill"></i></span>
+          <span class="fw-bold fs-6">Career<span class="text-accent">Mitar</span></span>
+        </div>
+        <p class="text-muted small mb-2">
+          Your AI-powered career counselor — personalized guidance, skill maps, and interview prep, available 24/7.
+        </p>
+        <span class="cm-footer-pill">
+          <i class="bi bi-cpu me-1"></i>Powered by Meta Llama
+        </span>
       </div>
-      <div class="col-md-6 text-md-end">
-        <span class="text-muted small">© 2025 Career Mitar — Your Future, Guided by Intelligence</span>
+
+      <!-- Quick links -->
+      <div class="col-6 col-md-2">
+        <div class="cm-footer-heading">Navigate</div>
+        <ul class="list-unstyled mb-0 small">
+          <li><a href="{{ url_for('index') }}"     class="cm-footer-link">Home</a></li>
+          <li><a href="{{ url_for('profile') }}"   class="cm-footer-link">My Profile</a></li>
+          <li><a href="{{ url_for('chat') }}"      class="cm-footer-link">AI Advisor</a></li>
+          <li><a href="{{ url_for('dashboard') }}" class="cm-footer-link">Dashboard</a></li>
+        </ul>
       </div>
+
+      <!-- Built by -->
+      <div class="col-6 col-md-3">
+        <div class="cm-footer-heading">Built by</div>
+        <p class="small text-muted mb-3">
+          <strong class="text-body">Shiv Mahlan</strong><br>
+          Developer &amp; AI Enthusiast
+        </p>
+        <div class="d-flex flex-column gap-2">
+          <a href="https://github.com/Shivmahlan" target="_blank" rel="noopener" class="cm-footer-social">
+            <i class="bi bi-github"></i><span>Shivmahlan</span>
+          </a>
+          <a href="https://www.linkedin.com/in/shivmahlan/" target="_blank" rel="noopener" class="cm-footer-social">
+            <i class="bi bi-linkedin"></i><span>shivmahlan</span>
+          </a>
+          <a href="https://www.instagram.com/shiv.mahlan/" target="_blank" rel="noopener" class="cm-footer-social">
+            <i class="bi bi-instagram"></i><span>shiv.mahlan</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Get started CTA -->
+      <div class="col-md-3 text-md-end">
+        <div class="cm-footer-heading">Get Started</div>
+        <p class="small text-muted mb-3">Build your profile and unlock your personalized career roadmap today.</p>
+        <a href="{{ url_for('profile') }}" class="btn btn-accent btn-sm px-4">
+          <i class="bi bi-rocket-takeoff me-1"></i>Start Free
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="cm-footer-bottom mt-4 pt-3">
+      <span class="small text-muted">© 2025 Career Mitar — Your Future, Guided by Intelligence</span>
+      <span class="small text-muted">Made with <i class="bi bi-heart-fill text-accent" style="font-size:11px;"></i> for students everywhere</span>
     </div>
   </div>
 </footer>
